@@ -11,19 +11,29 @@ defmodule GeoTasks.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :plug],
       mod: {GeoTasks.Application, []}
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      # code climate
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+
+      # HTTP endpoint
+      # We don't need Phoenix for a simple API
+      {:plug_cowboy, "~> 2.4"},
+      {:jason, "~> 1.2"},
+      # NOTE: remove this if CORS protection is not necessary
+      {:cors_plug, "~> 2.0"},
+
+      # database
+      {:ecto_sql, "~> 3.5"},
+      {:postgrex, "~> 0.15"},
     ]
   end
 end

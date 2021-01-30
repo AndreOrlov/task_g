@@ -1,0 +1,66 @@
+name: Tests on PR
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run_tests:
+    name: Run Tests
+
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+
+    services:
+      db:
+        image: postgres:13-alpine
+        ports: ['5432:5432']
+        env:
+          LANG: en_US.utf8
+          POSTGRES_DB: geo_tasks_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        otp: ['23.2.1']
+        elixir: ['1.11.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Setup Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      
+      - name: Retrieve Dependencies Cache
+        uses: actions/cache@v1
+        id: mix-cache
+        with:
+          path: deps
+          key: ${{runner.os}}-${{matrix.otp}}-${{matrix.elixir}}-mix-${{hashFiles(format('{0}{1}', github.workspace, '/mix.lock'))}}
+      
+      - name: Install Dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      
+      - name: Compile Project
+        run: mix compile
+      
+      - name: Run Tests
+        run: mix test
+      

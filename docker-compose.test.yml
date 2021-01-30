@@ -1,0 +1,18 @@
+# used for local testing:
+#   docker-compose -f docker-compose.test.yml up -d
+#   mix test
+
+version: '3.3'
+services:
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - ./data/postgres_test:/data
+    ports:
+      - 5432:5432
+    environment:
+      LANG: en_US.utf8
+      PGDATA: /data
+      POSTGRES_DB: geo_tasks_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres

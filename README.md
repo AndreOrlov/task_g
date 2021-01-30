@@ -1,21 +1,26 @@
 # GeoTasks
 
-**TODO: Add description**
+## Local deveopment
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `geo_tasks` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:geo_tasks, "~> 0.1.0"}
-  ]
-end
+```bash
+docker-compose up -d
+iex -S mix
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/geo_tasks](https://hexdocs.pm/geo_tasks).
+## Local testing
 
+> NOTE: Run tests before pushing changes to repo
+
+```bash
+docker-compose -f docker-compose.test.yml up -d
+mix test
+```
+
+## Local code climate
+
+> NOTE: Run these checks before pushing changes to repo
+
+```bash
+mix credo --strict
+mix dialyzer
+```

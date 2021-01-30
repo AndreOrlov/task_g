@@ -1,20 +1,35 @@
 defmodule GeoTasks.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
 
+  @app :geo_tasks
+
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: GeoTasks.Worker.start_link(arg)
-      # {GeoTasks.Worker, arg}
+      GeoTasks.Repo,
+      endpoint_spec(),
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: GeoTasks.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp endpoint_spec do
+    {plug_opts, endpoint_opts} =
+      @app
+      |> Application.get_env(:endpoint, [])
+      |> Keyword.split(~w[port]a)
+    plug_opts =
+      plug_opts
+      |> Keyword.put_new(:port, 4000)
+    endpoint_opts =
+      endpoint_opts
+      |> Keyword.put_new(:scheme, :http)
+      |> Keyword.put(:plug, GeoTasks.Endpoint)
+      |> Keyword.put(:options, plug_opts)
+
+    {Plug.Cowboy, endpoint_opts}
   end
 end

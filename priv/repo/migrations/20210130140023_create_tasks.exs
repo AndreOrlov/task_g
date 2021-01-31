@@ -15,7 +15,7 @@ defmodule GeoTasks.Repo.Migrations.CreateTasks do
       add :delivery_lat, :decimal, precision: 9, scale: 6, null: false
       add :delivery_lon, :decimal, precision: 9, scale: 6, null: false
 
-      add :pickup_geohash, :string, size: 50, null: false
+      add :pickup_geohash, :string, size: 11, null: false
 
       timestamps()
     end

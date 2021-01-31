@@ -3,6 +3,8 @@ defmodule GeoTasks.Controller do
   Basic module for all controllers. Implements minimal abstraction logic
   """
 
+  alias GeoTasks.Endpoint
+
   defmodule ServerErrorException do
     @moduledoc """
     The request will not be processed due to server error
@@ -18,6 +20,9 @@ defmodule GeoTasks.Controller do
   @doc false
   defmacro __using__(_opts) do
     quote do
+      import unquote(__MODULE__), only: [serialize: 1]
+      import Plug.Conn
+
       def handle_request(action, conn) do
         unquote(__MODULE__).handle_request(__MODULE__, action, conn)
       end
@@ -31,9 +36,8 @@ defmodule GeoTasks.Controller do
       case apply(module, action, [conn]) do
         :ok                 -> conn |> Plug.Conn.send_resp(200, "")
         {:ok, reply}        -> conn |> Plug.Conn.send_resp(200, Jason.encode!(reply))
-        {:error, reason}    -> raise ServerErrorException, reason: reason
         %Plug.Conn{} = conn -> conn
-        _                   -> raise ServerErrorException, message: "unexpected return value"
+        _                   -> Endpoint.send_error(conn)
       end
     else
       raise ServerErrorException, message: "invalid controller action"
@@ -42,4 +46,13 @@ defmodule GeoTasks.Controller do
   def handle_request(_action, _conn) do
     raise ServerErrorException, message: "invalid controller action"
   end
+
+  @spec serialize(any) :: any
+  def serialize(%Decimal{} = value), do: Decimal.to_float(value)
+  def serialize(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  def serialize(%_module{} = value), do: value |> Map.from_struct() |> serialize()
+  def serialize(%{__meta__: _} = value), do: value |> Map.drop([:__meta__]) |> serialize()
+  def serialize(%{} = value), do: value |> Enum.into(%{}, fn {k, v} -> {k, serialize(v)} end)
+  def serialize(value) when is_list(value), do: Enum.map(value, &serialize/1)
+  def serialize(value), do: value
 end

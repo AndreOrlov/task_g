@@ -11,6 +11,7 @@ defmodule GeoTasks.ControllerTest do
   def func3(_), do: {:error, :reason}
   def func4(_), do: :unexpected
   def func5(conn), do: conn |> Plug.Conn.send_resp(500, "error")
+  def invalid_action(_, _), do: :ok
 
   defp test_conn, do: conn(:post, "/")
 
@@ -29,18 +30,29 @@ defmodule GeoTasks.ControllerTest do
       assert conn.resp_body == Jason.encode!([%{some: "json"}])
     end
 
-    test "raises ServerErrorException {:error, reason} replies" do
-      assert_raise ServerErrorException, fn -> handle_request(:func3, test_conn()) end
+    test "returns 400 status for {:error, reason} replies" do
+      conn = handle_request(:func3, test_conn())
+      assert conn.state == :sent
+      assert conn.status == 400
+      assert conn.resp_body == ""
     end
 
-    test "raises ServerErrorException on unexpected replies" do
-      assert_raise ServerErrorException, fn -> handle_request(:func4, test_conn()) end
+    test "returns 400 status on unexpected replies" do
+      conn = handle_request(:func4, test_conn())
+      assert conn.state == :sent
+      assert conn.status == 400
+      assert conn.resp_body == ""
     end
 
     test "passes through %PlugConn{} replies" do
       conn = handle_request(:func5, test_conn())
       assert conn.status == 500
       assert conn.resp_body == "error"
+    end
+
+    test "raises error for invalid actions" do
+      assert_raise ServerErrorException, fn -> handle_request(:nonexistent_action, test_conn()) end
+      assert_raise ServerErrorException, fn -> handle_request(:invalid_action, test_conn()) end
     end
   end
 end

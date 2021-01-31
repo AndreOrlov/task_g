@@ -6,8 +6,10 @@ defmodule GeoTasks.MixProject do
       app: :geo_tasks,
       version: "0.1.0",
       elixir: "~> 1.11",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases(),
     ]
   end
 
@@ -34,6 +36,21 @@ defmodule GeoTasks.MixProject do
       # database
       {:ecto_sql, "~> 3.5"},
       {:postgrex, "~> 0.15"},
+
+      # geo stuff
+      {:geohash, "~> 1.2"},
+    ]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      setup: ["deps.get", "ecto.setup"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
 end

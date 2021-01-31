@@ -5,11 +5,10 @@ defmodule GeoTasks.Endpoint do
   use Plug.ErrorHandler
 
   plug Plug.Logger
-  plug :match
-  plug :dispatch
-
   # NOTE: remove this if CORS protection is not necessary
   plug CORSPlug
+  plug :match
+  plug :dispatch
 
   forward "/api/v1", to: GeoTasks.Router
 

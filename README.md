@@ -74,7 +74,7 @@ export D_TOKEN="<driver token>"
 # follow previous workflow except two first steps
 ```
 
-## Local deveopment
+## Local development
 
 ```bash
 docker-compose up -d

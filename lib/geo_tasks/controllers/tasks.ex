@@ -33,16 +33,19 @@ defmodule GeoTasks.TasksController do
   * 400, "Invalid delivery point" - `delivery` parameter should be in form `%{lat: 53.1, lon: 37.2}`
   * 400, "Invalid delivery point latitude"
   * 400, "Invalid delivery point longitude"
+  * 401, "Unauthorized" - you are not authorized to create tasks
   """
   @spec create(conn :: Plug.Conn.t) :: {:ok, map} | Plug.Conn.t
-  def create(%{params: params} = conn) do
+  def create(%{params: params, assigns: %{user: %{role: "manager", id: manager_id}}} = conn) do
     with {:ok, params} <- sanitize_task(params, conn) do
-      # temporary manager_id assignment - remove when auth will be implemented
-      params = Map.put(params, :manager_id, Ecto.UUID.generate())
+      params = Map.put(params, :manager_id, manager_id)
       changeset = Task.create_changeset(%Task{}, params)
       task = Repo.insert!(changeset)
       {:ok, task |> Map.take(~w[id]a) |> serialize()}
     end
+  end
+  def create(conn) do
+    send_error(conn, 401, "Unauthorized")
   end
 
   @doc """
@@ -66,25 +69,37 @@ defmodule GeoTasks.TasksController do
       },
       ...
     ]
+
+  errors:
+
+  * 401, "Unauthorized" - you are not authorized to get task list
   """
   @spec list(conn :: Plug.Conn.t) :: {:ok, [map]} | Plug.Conn.t
-  def list(%{params: params} = conn) do
+  def list(%{params: params, assigns: %{user: %{role: "driver"}}} = conn) do
     with {:ok, lat, lon} <- sanitize_geo_point(params, "driver point", conn) do
       query = Task.nearest(lat, lon, raidus: @nearest_radius, limit: @nearest_limit)
       list =
         query
         |> Repo.all()
         |> Enum.map(fn task ->
+          pickup_lat = Decimal.to_float(task.pickup_lat)
+          pickup_lon = Decimal.to_float(task.pickup_lon)
+
           task
           |> Map.take(~w[id status manager_id updated_at]a)
           |> Map.merge(%{
             pickup: %{lat: task.pickup_lat, lon: task.pickup_lon},
             delivery: %{lat: task.delivery_lat, lon: task.delivery_lon},
+            distance: GeoTasks.Geo.distance(lat, lon, pickup_lat, pickup_lon),
           })
         end)
+        |> Enum.sort_by(& &1.distance)
         |> serialize()
       {:ok, list}
     end
+  end
+  def list(conn) do
+    send_error(conn, 401, "Unauthorized")
   end
 
   @doc """
@@ -107,12 +122,13 @@ defmodule GeoTasks.TasksController do
   * 404, "Task not found" - where are no task with specified id
   * 400, "Invalid task id" - invalid task id parameter
   * 400, "Invalid task" - specified task has invalid status
+  * 401, "Unauthorized" - you are not authorized to pick up task
   """
   @spec pickup(conn :: Plug.Conn.t) :: {:ok, map} | Plug.Conn.t
-  def pickup(%{params: params} = conn) do
+  def pickup(%{params: params, assigns: %{user: %{role: "driver", id: driver_id}}} = conn) do
     with {:ok, task_id} <- sanitize_task_id(params, conn),
          %Task{status: "new"} = task <- Repo.get(Task, task_id) do
-      changeset = Task.update_changeset(task, %{status: "assigned"})
+      changeset = Task.update_changeset(task, %{status: "assigned", driver_id: driver_id})
       task = Repo.update!(changeset)
       {:ok, task |> Map.take(~w[id status updated_at]a) |> serialize()}
     else
@@ -120,6 +136,9 @@ defmodule GeoTasks.TasksController do
       %Task{} -> send_error(conn, "Invalid task")
       other   -> other
     end
+  end
+  def pickup(conn) do
+    send_error(conn, 401, "Unauthorized")
   end
 
   @doc """
@@ -142,19 +161,24 @@ defmodule GeoTasks.TasksController do
   * 404, "Task not found" - where are no task with specified id
   * 400, "Invalid task id" - invalid task id parameter
   * 400, "Invalid task" - specified task has invalid status
+  * 401, "Unauthorized" - you are not authorized to finish this task
   """
   @spec finish(conn :: Plug.Conn.t) :: {:ok, map} | Plug.Conn.t
-  def finish(%{params: params} = conn) do
+  def finish(%{params: params, assigns: %{user: %{role: "driver", id: driver_id}}} = conn) do
     with {:ok, task_id} <- sanitize_task_id(params, conn),
-         %Task{status: "assigned"} = task <- Repo.get(Task, task_id) do
+         %Task{status: "assigned", driver_id: ^driver_id} = task <- Repo.get(Task, task_id) do
       changeset = Task.update_changeset(task, %{status: "done"})
       task = Repo.update!(changeset)
       {:ok, task |> Map.take(~w[id status updated_at]a) |> serialize()}
     else
-      nil     -> send_error(conn, 404, "Task not found")
-      %Task{} -> send_error(conn, "Invalid task")
-      other   -> other
+      nil                       -> send_error(conn, 404, "Task not found")
+      %Task{status: "assigned"} -> send_error(conn, 401, "Unauthorized")
+      %Task{}                   -> send_error(conn, "Invalid task")
+      other                     -> other
     end
+  end
+  def finish(conn) do
+    send_error(conn, 401, "Unauthorized")
   end
 
   defp send_error(conn, msg) do

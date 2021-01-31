@@ -5,6 +5,7 @@ defmodule GeoTasks.Router do
 
   alias GeoTasks.TasksController, as: Tasks
 
+  plug GeoTasks.Auth.Plug
   plug Plug.Parsers, parsers: [:json], pass: ["application/json"], json_decoder: Jason
 
   plug :match

@@ -12,6 +12,15 @@ defmodule GeoTasks.Endpoint do
 
   forward "/api/v1", to: GeoTasks.Router
 
+  if Code.ensure_loaded?(Mix) and Mix.env() in ~w[dev test]a do
+    @dialyzer :no_return
+
+    get "/token/:role" do
+      {:ok, token} = GeoTasks.Auth.sign(%{role: conn.params["role"], id: Ecto.UUID.generate()})
+      conn |> send_resp(200, token) |> halt()
+    end
+  end
+
   match _, do: send_error(conn)
 
   @doc """

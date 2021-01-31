@@ -17,6 +17,10 @@ defmodule GeoTasks.ReleaseTasks do
     end
   end
 
+  def generate_token(role \\ "manager") do
+    GeoTasks.Auth.sign(%{role: role, id: Ecto.UUID.generate()})
+  end
+
   defp run_migrations do
     app = Keyword.get(Repo.config(), :otp_app)
     IO.puts("Running migrations for #{app}")

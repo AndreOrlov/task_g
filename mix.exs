@@ -39,6 +39,9 @@ defmodule GeoTasks.MixProject do
 
       # geo stuff
       {:geohash, "~> 1.2"},
+
+      # crypto
+      {:blake2_elixir, "~> 0.8"},
     ]
   end
 

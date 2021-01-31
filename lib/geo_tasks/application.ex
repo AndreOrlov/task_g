@@ -8,6 +8,7 @@ defmodule GeoTasks.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {GeoTasks.Auth, Application.get_env(:geo_tasks, :auth, [])},
       GeoTasks.Repo,
       endpoint_spec(),
     ]

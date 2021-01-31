@@ -17,6 +17,14 @@ defmodule GeoTasks.ConnCase do
       def call(conn) do
         Endpoint.call(conn, Endpoint.init([]))
       end
+
+      def authorize(conn, role, id) do
+        {:ok, token} = GeoTasks.Auth.sign(%{role: role, id: id})
+        conn |> put_req_header("authorization", token)
+      end
+      def authorize(conn, role) do
+        authorize(conn, role, Ecto.UUID.generate())
+      end
     end
   end
 

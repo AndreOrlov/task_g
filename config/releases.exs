@@ -11,3 +11,9 @@ config :geo_tasks, GeoTasks.Repo,
 # NOTE: remove this if CORS protection is not necessary
 config :cors_plug,
   origin: String.split(System.fetch_env!("CORS_ORIGIN"), ~r/\s+/)
+
+config :geo_tasks, :auth,
+  # 48 |> :crypto.strong_rand_bytes() |> Base.encode64()
+  key: System.fetch_env!("AUTH_KEY"),
+  # 24 |> :crypto.strong_rand_bytes() |> Base.encode64()
+  salt: System.fetch_env!("AUTH_SALT")

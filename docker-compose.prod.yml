@@ -1,0 +1,27 @@
+# used for testing production on development machine:
+#   docker-compose -f docker-compose.prod.yml up -d
+
+version: '3.3'
+services:
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - ./data/postgres_prod:/data
+    environment:
+      LANG: en_US.utf8
+      PGDATA: /data
+      POSTGRES_DB: geo_tasks
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  geo_tasks:
+    image: geo_tasks
+    ports:
+      - 4000:4000
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_NAME: geo_tasks
+      CORS_ORIGIN: http://localhost:4000
+      AUTH_KEY: C9gor2ooviwRzCsUJnelyh4S9SydFKvzP+qk3b7B08X9u6GBuht8HSuH2Y4rCJPN
+      AUTH_SALT: ccR1dc9KSFJcJaxBhqGbx/fhXsqosVAk

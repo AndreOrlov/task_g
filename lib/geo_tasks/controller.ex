@@ -29,6 +29,8 @@ defmodule GeoTasks.Controller do
     end
   end
 
+  # REVIEW: Думаю избыточно. Макросы многих пугают. И с ходу прочитать код сложнее. Надо в макрос лезть.
+  # REVIEW: Документации к функции не хватает.
   @doc false
   @spec handle_request(module :: module, action :: atom, conn :: Plug.Conn.t) :: Plug.Conn.t
   def handle_request(module, action, conn) when is_atom(module) and is_atom(action) do

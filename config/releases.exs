@@ -12,6 +12,7 @@ config :geo_tasks, GeoTasks.Repo,
 config :cors_plug,
   origin: String.split(System.fetch_env!("CORS_ORIGIN"), ~r/\s+/)
 
+# REVIEW: я бы убрал это в local.exs, пусть у каждого разраба свой клуч будет.
 config :geo_tasks, :auth,
   # 48 |> :crypto.strong_rand_bytes() |> Base.encode64()
   key: System.fetch_env!("AUTH_KEY"),

@@ -14,6 +14,7 @@ config :cors_plug,
 
 config :logger, :console, format: "[$level] $message\n"
 
+# REVIEW: я бы убрал это в local.exs, пусть у каждого разраба свой клуч будет.
 config :geo_tasks, :auth,
   # 48 |> :crypto.strong_rand_bytes() |> Base.encode64()
   key: "WOlk7p/G6kg9AGtOqn5axjpJh/I0WopLuPYk36JOVD+c8++bwTdtm0gtZWqX8s62",

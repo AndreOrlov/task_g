@@ -41,6 +41,7 @@ defmodule GeoTasks.TasksController do
       params = Map.put(params, :manager_id, manager_id)
       changeset = Task.create_changeset(%Task{}, params)
       task = Repo.insert!(changeset)
+      # REVIEW: никак не подписываются request / response ?
       {:ok, task |> Map.take(~w[id]a) |> serialize()}
     end
   end

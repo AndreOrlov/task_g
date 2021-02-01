@@ -12,6 +12,7 @@ defmodule GeoTasks.Schema.Task do
 
   schema "tasks" do
     field :status, :string, default: "new"
+    # REVIEW: User не хватает. Но, возможно, этого не было в задании
     field :manager_id, :binary_id
     field :driver_id, :binary_id
 

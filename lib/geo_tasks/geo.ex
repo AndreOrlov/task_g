@@ -34,6 +34,7 @@ defmodule GeoTasks.Geo do
     [center | Map.values(neighbors)]
   end
 
+  # REVIEW: А Postgres нельзя заюзать. Ьыстрее должно быть.
   @doc """
   Finds distance in meters between two points
 

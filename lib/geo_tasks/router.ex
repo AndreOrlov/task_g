@@ -5,7 +5,8 @@ defmodule GeoTasks.Router do
 
   alias GeoTasks.TasksController, as: Tasks
 
-  plug GeoTasks.Auth.Plug
+  # REVIEW: Почему Quardian не использовать. Для API он самый раз.
+  plug GeoTasks.Auth.Plug # REVIEW: Будь готов к вопросу какие знаешь библиотеки авторизации и аутентификации.
   plug Plug.Parsers, parsers: [:json], pass: ["application/json"], json_decoder: Jason
 
   plug :match
